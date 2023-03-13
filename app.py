@@ -3,11 +3,9 @@ import pandas as pd
 from pydantic import BaseModel
 import joblib
 from fastapi import FastAPI
-from typing import Tuple
-# from category_encoders import WOEEncoder
 
 
-def calculate_groups(age: float, avg_glucose_level: float) -> Tuple[str, str]:
+def calculate_groups(age: float, avg_glucose_level: float):
     # Calculate the age group based on the age value
     age_bins = [0, 14, 24, 64, 120]
     age_labels = ['children', 'youth', 'adult', 'senior']
@@ -43,8 +41,8 @@ class PredictionOut(BaseModel):
 
 
 # Load the pre-trained pipeline
-log_pipe = joblib.load("stroke_model/log_reg_model.pkl")
-
+log_pipe = joblib.load("log_reg_model.pkl")
+print(type(log_pipe))
 # Start the app
 app = FastAPI()
 
@@ -66,9 +64,11 @@ def predict(observation: Observation):
 
     df = pd.DataFrame([observation.dict()])
 
-    preprocessed_observation = log_pipe.transform(df)
+    transformer = log_pipe[:-1].named_steps['preprocessor']
+    X_processed = transformer.transform(df)
 
-    predicted_proba = preprocessed_observation['classifier'].predict_proba(
-        preprocessed_observation.drop('stroke', axis=1))[:, 1]
+    # Get predicted probabilities from the logistic regression model
+    predicted_proba = log_pipe.named_steps['classifier'].predict_proba(X_processed)[
+        :, 1]
 
-    return {"probability": float(predicted_proba)}
+    return {"probability": f"{round(float(predicted_proba)*100)}%"}
