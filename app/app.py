@@ -41,7 +41,7 @@ class PredictionOut(BaseModel):
 
 
 # Load the pre-trained pipeline
-log_pipe = joblib.load("log_reg_model.pkl")
+log_pipe = joblib.load("app/log_reg_model.pkl")
 print(type(log_pipe))
 # Start the app
 app = FastAPI()

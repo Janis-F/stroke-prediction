@@ -1,15 +1,11 @@
-
-FROM python:3.9-slim
+FROM python:3.9-slim-buster
 
 WORKDIR /app
 
-COPY requirements.txt requirements.txt
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+COPY . .
 
-COPY ["log_reg_model.pkl", "app.py", "./"]
+CMD ["locust", "--host=https://default-service-2hwdmv3hoq-nw.a.run.app", "--users=300", "--spawn-rate=5", "--headless"]
 
-EXPOSE 80
-
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "80"]
